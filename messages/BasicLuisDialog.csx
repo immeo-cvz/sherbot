@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Chronic.Handlers;
 using Microsoft.Bot.Builder.Azure;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Luis;
@@ -123,7 +124,7 @@ public class BasicLuisDialog : LuisDialog<object>
         string person;
         if (!TryGetConversationData(context, PersonEntityKey, out person))
         {
-            await context.PostAsync($"Who do you want to buy a gift for?"); //
+            await context.PostAsync($"Who do you want to buy a gift for? {JsonConvert.SerializeObject(context.ConversationData)}"); //
             context.Wait(MessageReceived);
 
         }
