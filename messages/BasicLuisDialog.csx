@@ -40,6 +40,8 @@ public class BasicLuisDialog : LuisDialog<object>
     public const string PersonEntityKey = "Person";
     public const string AgeEntityKey = "builtin.age";
     public const string GenderEntityKey = "Gender";
+    public const string InterestsEntityKey = "Interests";
+
     public const string GenderMale = "Male";
     public const string GenderFemale = "Female";
 
@@ -96,24 +98,22 @@ public class BasicLuisDialog : LuisDialog<object>
     [LuisIntent("IdentifyGender")]
     public async Task IdentifySex(IDialogContext context, LuisResult result)
     {
-        await context.PostAsync($"IdentifyGender?"); //
-        context.Wait(MessageReceived);
+        FetchInspirationData(context, result);
+        await ProceedInspirationConversation(context, result);
     }
 
     [LuisIntent("IdentifyAge")]
     public async Task IdentifyAge(IDialogContext context, LuisResult result)
     {
-        string person;
-        TryGetConversationData(context, "Person", out person);
-
-        context.Wait(MessageReceived);
+        FetchInspirationData(context, result);
+        await ProceedInspirationConversation(context, result);
     }
 
     [LuisIntent("IdentifyInterests")]
     public async Task IdentifyInterests(IDialogContext context, LuisResult result)
     {
-        await context.PostAsync($"Who do you want to buy a gift for?"); //
-        context.Wait(MessageReceived);
+        FetchInspirationData(context, result);
+        await ProceedInspirationConversation(context, result);
     }
 
 
@@ -135,7 +135,14 @@ public class BasicLuisDialog : LuisDialog<object>
         {
             await context.PostAsync($"How old is {person}? {JsonConvert.SerializeObject(result)}");
         }
-        //else if (!HasConversationData())
+        else if (!HasConversationData(context, InterestsEntityKey))
+        {
+            await context.PostAsync($"What are {person}s interests? {JsonConvert.SerializeObject(result)}");
+        }
+        else
+        {
+            //Make recommendations
+        }
         context.Wait(MessageReceived);
     }
 
@@ -175,7 +182,7 @@ public class BasicLuisDialog : LuisDialog<object>
 
     private void FetchInspirationData(IDialogContext context, LuisResult result)
     {
-        var entities = new string[] { PersonEntityKey, AgeEntityKey };
+        var entities = new string[] { PersonEntityKey, AgeEntityKey, GenderEntityKey };
         foreach (var entityKey in entities)
         {
             string data = "";
