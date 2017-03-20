@@ -85,7 +85,7 @@ public class BasicLuisDialog : LuisDialog<object>
     private async Task ProceedInspirationConversation(IDialogContext context, LuisResult result)
     {
         string person;
-        if (!HasConversationData(context, PersonEntityKey))
+        if (!TryGetConversationData(context, PersonEntityKey,person))
         {
             await context.PostAsync($"Who do you want to buy a gift for?"); //
             context.Wait(MessageReceived);
@@ -93,7 +93,7 @@ public class BasicLuisDialog : LuisDialog<object>
         }
         else if (!HasConversationData(context, AgeEntityKey))
         {
-            await context.PostAsync($"How old is {person.Entity} {JsonConvert.SerializeObject(result)}?");
+            await context.PostAsync($"How old is {person} {JsonConvert.SerializeObject(result)}?");
         }
         context.Wait(MessageReceived);
     }
@@ -128,7 +128,7 @@ public class BasicLuisDialog : LuisDialog<object>
         value = null;
         var entity = result.Entities.FirstOrDefault(x => x.Type.Equals(key) && x.Score > 0.6);
         if (entity == null) return false;
-        if (context.ConversationData.TryGetValue(key, out value))
+        if (entity.TryGetValue(key, out value))
         {
             return true;
         }
