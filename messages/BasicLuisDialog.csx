@@ -63,7 +63,7 @@ public class BasicLuisDialog : LuisDialog<object>
 
         //Check hvilke entiteter der er identificeret.
         FetchInspirationData(context, result);
-        ProceedInspirationConversation(context, result);
+        await ProceedInspirationConversation(context, result);
 
 
         //var entities = result.Entities;
@@ -141,6 +141,7 @@ public class BasicLuisDialog : LuisDialog<object>
         }
         else
         {
+            await context.PostAsync($"Now I know everything");
             //Make recommendations
         }
         context.Wait(MessageReceived);
