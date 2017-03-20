@@ -15,6 +15,10 @@ public class BasicLuisDialog : LuisDialog<object>
     {
     }
 
+    public const string PersonEntityKey = "Person";
+    public const string AgeEntityKey = "age";
+
+
     [LuisIntent("None")]
     public async Task NoneIntent(IDialogContext context, LuisResult result)
     {
@@ -27,21 +31,23 @@ public class BasicLuisDialog : LuisDialog<object>
     [LuisIntent("GetInspiration")]
     public async Task GetInspiration(IDialogContext context, LuisResult result)
     {
-        
+
         //Check hvilke entiteter der er identificeret.
-        int i = 1;
-        
-        var entities = result.Entities;
-        var person = entities.FirstOrDefault(x => x.Type.Equals("Person"));
-        if (person != null && person.Score > 0.60) {
-            context.UserData.SetValue("Person", person.Entity);
-            await context.PostAsync($"How old is {person.Entity} {JsonConvert.SerializeObject(result)}?"); //
-            context.Wait(MessageReceived);
-        }
-        else {
-            await context.PostAsync($"Who do you want to buy a gift for? {JsonConvert.SerializeObject(result)}"); //
-            context.Wait(MessageReceived);
-        }
+        FetchInspirationData(context, result);
+        ProceedInspirationConversation(context);
+
+
+        //var entities = result.Entities;
+        //var person = entities.FirstOrDefault(x => x.Type.Equals("Person"));
+        //if (person != null && person.Score > 0.60) {
+        //    context.UserData.SetValue("Person", person.Entity);
+        //    await context.PostAsync($"How old is {person.Entity} {JsonConvert.SerializeObject(result)}?"); //
+        //    context.Wait(MessageReceived);
+        //}
+        //else {
+        //    await context.PostAsync($"Who do you want to buy a gift for? {JsonConvert.SerializeObject(result)}"); //
+        //    context.Wait(MessageReceived);
+        //}
     }
     
     [LuisIntent("IdentifyPerson")]
@@ -73,6 +79,78 @@ public class BasicLuisDialog : LuisDialog<object>
         await context.PostAsync($"Who do you want to buy a gift for?"); //
         context.Wait(MessageReceived);
     }
+
+
+
+    private async Task ProceedInspirationConversation(IDialogContext context)
+    {
+        string person;
+        if (!HasConversationData(context, PersonEntityKey))
+        {
+            await context.PostAsync($"Who do you want to buy a gift for?"); //
+            context.Wait(MessageReceived);
+
+        }
+        else if (!HasConversationData(context, AgeEntityKey))
+        {
+            await context.PostAsync($"How old is {person.Entity} {JsonConvert.SerializeObject(result)}?");
+        }
+        context.Wait(MessageReceived);
+    }
+
+    private bool HasConversationData(IDialogContext context, string key)
+    {
+        if (context.ConversationData.TryGetValue(key, out value))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private bool TryGetConversationData(IDialogContext context, string key, out string value)
+    {
+        if (context.ConversationData.TryGetValue(key, out value))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    private bool TryGetEntityData(LuisResult result, string key, out string value, float score = 0.6)
+    {
+
+        var entity = result.Entities.FirstOrDefault(x => x.Type.Equals(key) && x.Score > score);
+        if (entity == null) return false;
+        if (context.ConversationData.TryGetValue(key, out value))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private void FetchInspirationData(IDialogContext context, LuisResult result)
+    {
+        var entities = new[] { PersonEntityKey, AgeEntityKey};
+        foreach (var entityKey in entities)
+        {
+            string data;
+            if (TryGetEntityData(data))
+            {
+                context.ConversationData.SetValue(entityKey, data);
+            }
+        }
+    }
+
+
+    
     
     // Go to https://luis.ai and create a new intent, then train/publish your luis app.
     // Finally replace "MyIntent" with the name of your newly created intent in the following handler
