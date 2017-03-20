@@ -34,7 +34,7 @@ public class BasicLuisDialog : LuisDialog<object>
 
         //Check hvilke entiteter der er identificeret.
         FetchInspirationData(context, result);
-        ProceedInspirationConversation(context);
+        ProceedInspirationConversation(context, result);
 
 
         //var entities = result.Entities;
@@ -82,7 +82,7 @@ public class BasicLuisDialog : LuisDialog<object>
 
 
 
-    private async Task ProceedInspirationConversation(IDialogContext context)
+    private async Task ProceedInspirationConversation(IDialogContext context, LuisResult result)
     {
         string person;
         if (!HasConversationData(context, PersonEntityKey))
@@ -100,6 +100,7 @@ public class BasicLuisDialog : LuisDialog<object>
 
     private bool HasConversationData(IDialogContext context, string key)
     {
+        string value;
         if (context.ConversationData.TryGetValue(key, out value))
         {
             return true;
