@@ -113,6 +113,7 @@ public class BasicLuisDialog : LuisDialog<object>
 
     private bool TryGetConversationData(IDialogContext context, string key, out string value)
     {
+        value = null;
         if (context.ConversationData.TryGetValue(key, out value))
         {
             return true;
@@ -122,10 +123,10 @@ public class BasicLuisDialog : LuisDialog<object>
             return false;
         }
     }
-    private bool TryGetEntityData(LuisResult result, string key, out string value, float score = 0.6)
+    private bool TryGetEntityData(LuisResult result, string key, out string value)
     {
-
-        var entity = result.Entities.FirstOrDefault(x => x.Type.Equals(key) && x.Score > score);
+        value = null;
+        var entity = result.Entities.FirstOrDefault(x => x.Type.Equals(key) && x.Score > 0.6);
         if (entity == null) return false;
         if (context.ConversationData.TryGetValue(key, out value))
         {
