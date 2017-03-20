@@ -140,10 +140,10 @@ public class BasicLuisDialog : LuisDialog<object>
 
     private void FetchInspirationData(IDialogContext context, LuisResult result)
     {
-        var entities = new[] { PersonEntityKey, AgeEntityKey};
+        var entities = new string[] { PersonEntityKey, AgeEntityKey};
         foreach (var entityKey in entities)
         {
-            string data;
+            string data = "";
             if (TryGetEntityData(data))
             {
                 context.ConversationData.SetValue(entityKey, data);
