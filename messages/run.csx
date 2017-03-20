@@ -27,15 +27,13 @@ public static async Task<object> Run(HttpRequestMessage req, TraceWriter log)
         {
             return BotAuthenticator.GenerateUnauthorizedResponse(req);
         }
-    
         if (activity != null)
         {
             // one of these will have an interface and process it
             switch (activity.GetActivityType())
             {
                 case ActivityTypes.Message:
-                    
-                    await Conversation.SendAsync(activity, () => new BasicLuisSupportDialog());
+                    //await Conversation.SendAsync(activity, () => new BasicLuisSupportDialog());
                     await Conversation.SendAsync(activity, () => new BasicLuisDialog());
                     
                     break;
