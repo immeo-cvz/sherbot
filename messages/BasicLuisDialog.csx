@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Chronic.Handlers;
 using Microsoft.Bot.Builder.Azure;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Luis;
@@ -10,14 +12,40 @@ using Newtonsoft.Json;
 // For more information about this template visit http://aka.ms/azurebots-csharp-luis
 [Serializable]
 public class BasicLuisDialog : LuisDialog<object>
+
+
 {
     public BasicLuisDialog() : base(new LuisService(new LuisModelAttribute(Utils.GetAppSetting("LuisAppId"), Utils.GetAppSetting("LuisAPIKey"))))
     {
+        FemaleIdentifiers = new List<string>
+        {
+            "mother",
+            "mom",
+            "grandmother",
+            "girlfriend",
+            "sister",
+            "daughter",
+            "girl"
+        };
+        MaleIdentifiers = new List<string>
+        {
+            "father",
+            "dad",
+            "brother",
+            "son",
+            "boy",
+            "boyfriend"
+        };
     }
 
     public const string PersonEntityKey = "Person";
-    public const string AgeEntityKey = "age";
+    public const string AgeEntityKey = "builtin.age";
+    public const string GenderEntityKey = "Gender";
+    public const string GenderMale = "Male";
+    public const string GenderFemale = "Female";
 
+    public List<string> FemaleIdentifiers;
+    public List<string> MaleIdentifiers;
 
     [LuisIntent("None")]
     public async Task NoneIntent(IDialogContext context, LuisResult result)
@@ -53,14 +81,23 @@ public class BasicLuisDialog : LuisDialog<object>
     [LuisIntent("IdentifyPerson")]
     public async Task IdentifyPerson(IDialogContext context, LuisResult result)
     {
-        await context.PostAsync($"Who do you want to buy a gift for?"); //
+        FetchInspirationData(context, result);
+        string person;
+        if (TryGetConversationData(context, PersonEntityKey, out person))
+        {
+            await ProceedInspirationConversation(context, result);
+        }
+        else
+        {
+            await context.PostAsync($"I am not clever enough to understand you?"); //
+        }
         context.Wait(MessageReceived);
     }
 
-    [LuisIntent("IdentifySex")]
+    [LuisIntent("IdentifyGender")]
     public async Task IdentifySex(IDialogContext context, LuisResult result)
     {
-        await context.PostAsync($"Who do you want to buy a gift for?"); //
+        await context.PostAsync($"IdentifyGender?"); //
         context.Wait(MessageReceived);
     }
 
@@ -68,8 +105,8 @@ public class BasicLuisDialog : LuisDialog<object>
     public async Task IdentifyAge(IDialogContext context, LuisResult result)
     {
         string person;
-        context.UserData.TryGetValue("Person", out person);
-        await context.PostAsync($"Your {person} {JsonConvert.SerializeObject(result)}? !!!!!!!!!!!!!!!!!!!! {JsonConvert.SerializeObject(context)}?"); //
+        TryGetConversationData(context, "Person", out person);
+
         context.Wait(MessageReceived);
     }
 
@@ -91,10 +128,15 @@ public class BasicLuisDialog : LuisDialog<object>
             context.Wait(MessageReceived);
 
         }
+        else if (!HasConversationData(context, GenderEntityKey))
+        {
+            await context.PostAsync($"Is {person} male or female? {JsonConvert.SerializeObject(result)}");
+        }
         else if (!HasConversationData(context, AgeEntityKey))
         {
-            await context.PostAsync($"How old is {person} {JsonConvert.SerializeObject(result)}?");
+            await context.PostAsync($"How old is {person}? {JsonConvert.SerializeObject(result)}");
         }
+        //else if (!HasConversationData())
         context.Wait(MessageReceived);
     }
 
@@ -141,6 +183,19 @@ public class BasicLuisDialog : LuisDialog<object>
             if (TryGetEntityData(result, entityKey, out data))
             {
                 context.ConversationData.SetValue(entityKey, data);
+            }
+        }
+        string person = "";
+        if (TryGetEntityData(result, PersonEntityKey, out person))
+        {
+            person = person.ToLower();
+            if (FemaleIdentifiers.Contains(person))
+            {
+                context.UserData.SetValue(GenderEntityKey, GenderFemale);
+            }
+            else if (MaleIdentifiers.Contains(person))
+            {
+                context.UserData.SetValue(GenderEntityKey, GenderMale);
             }
         }
     }
