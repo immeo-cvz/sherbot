@@ -220,7 +220,6 @@ public class BasicLuisDialog : LuisDialog<object>
             }
         }
         var interests = GetEntityDataList(result, InterestEntityKey);
-        context.PostAsync($"Interests: {string.Join(",", interests.ToArray())}");
         if (interests.Any())
             context.ConversationData.SetValue(InterestEntityKey, string.Join(",", interests.ToArray()));
         string person = "";
