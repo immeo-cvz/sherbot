@@ -173,7 +173,7 @@ public class BasicLuisDialog : LuisDialog<object>
     private bool TryGetEntityData(LuisResult result, string key, out string value)
     {
         value = null;
-        var entity = result.Entities.FirstOrDefault(x => x.Type.Equals(key) && x.Score > 0.6);
+        var entity = result.Entities.FirstOrDefault(x => x.Type.Equals(key) && x.Score > 0.4);
         if (entity == null) return false;
         value = entity.Entity;
         return true;
