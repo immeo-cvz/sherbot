@@ -161,7 +161,7 @@ public class BasicLuisDialog : LuisDialog<object>
                 Products.Where(
                     x =>
                         x.Gender.Equals(gender, StringComparison.InvariantCultureIgnoreCase) &&
-                        interestsList.Contains(x.Interest.ToLowerInvariant()));
+                        interestsList.Any.Equals(x.Interest, StringComparison.InvariantCultureIgnoreCase));
             var products = string.Join(", ", product.Select(x => x.Id));
             await context.PostAsync($"Now I know everything {interests} , do you think {person} would like {products}");
         }
