@@ -200,11 +200,11 @@ public class BasicLuisDialog : LuisDialog<object>
             person = person.ToLower();
             if (FemaleIdentifiers.Contains(person))
             {
-                context.UserData.SetValue(GenderEntityKey, GenderFemale);
+                context.ConversationData.SetValue(GenderEntityKey, GenderFemale);
             }
             else if (MaleIdentifiers.Contains(person))
             {
-                context.UserData.SetValue(GenderEntityKey, GenderMale);
+                context.ConversationData.SetValue(GenderEntityKey, GenderMale);
             }
         }
     }
