@@ -163,7 +163,7 @@ public class BasicLuisDialog : LuisDialog<object>
                         x.Gender.Equals(gender, StringComparison.InvariantCultureIgnoreCase) &&
                         interestsList.Any(y => y.Equals(x.Interest, StringComparison.InvariantCultureIgnoreCase)));
             var products = string.Join(", ", product.Select(x => x.Id));
-            await context.PostAsync($"Now I know everything {interests} , do you think {person} would like {products}");
+            await context.PostAsync($"Now I know everything {interests} , do you think {person} would like {products} based on gender {gender} and interests {interests}");
         }
         context.Wait(MessageReceived);
     }
