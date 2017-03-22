@@ -39,9 +39,9 @@ public class BasicLuisDialog : LuisDialog<object>
         Products = new List<Product>()
         {
             new Product() {Name = "Havehandsker", Gender = GenderFemale, Id = "HAVE1", Interest = "gardening"},
-            new Product() {Name = "Skovl", Gender = GenderFemale, Id = "SKOV5", Interest = "gardening"},
+            new Product() {Name = "Skovl", Gender = GenderMale, Id = "SKOV5", Interest = "gardening"},
             new Product() {Name = "Yogamat", Gender = GenderFemale, Id = "YOGA1", Interest = "fitness"},
-            new Product() {Name = "Garmin watch", Gender = GenderFemale, Id = "GARM9", Interest = "fitness"}
+            new Product() {Name = "Garmin watch", Gender = GenderMale, Id = "GARM9", Interest = "fitness"}
         };
     }
 
