@@ -124,8 +124,6 @@ public class BasicLuisDialog : LuisDialog<object>
         if (!TryGetConversationData(context, PersonEntityKey, out person))
         {
             await context.PostAsync($"Who do you want to buy a gift for? {JsonConvert.SerializeObject(context.ConversationData)}"); //
-            context.Wait(MessageReceived);
-
         }
         else if (!HasConversationData(context, GenderEntityKey))
         {
@@ -186,9 +184,11 @@ public class BasicLuisDialog : LuisDialog<object>
         var entities = new string[] { PersonEntityKey, AgeEntityKey, GenderEntityKey };
         foreach (var entityKey in entities)
         {
+            context.PostAsync($"looking for {entityKey}");
             string data = "";
             if (TryGetEntityData(result, entityKey, out data))
             {
+                context.PostAsync($"saving {data}");
                 context.ConversationData.SetValue(entityKey, data);
             }
         }
