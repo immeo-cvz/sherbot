@@ -198,7 +198,7 @@ public class BasicLuisDialog : LuisDialog<object>
         if (TryGetEntityData(result, PersonEntityKey, out person))
         {
             person = person.ToLower();
-            context.PostAsync($"person is {entityKey}");
+            context.PostAsync($"person is {person}");
             if (FemaleIdentifiers.Any(x => x.Equals(person, StringComparison.InvariantCultureIgnoreCase)))
             {
                 context.ConversationData.SetValue(GenderEntityKey, GenderFemale);
