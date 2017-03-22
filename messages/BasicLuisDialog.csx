@@ -40,7 +40,7 @@ public class BasicLuisDialog : LuisDialog<object>
     public const string PersonEntityKey = "Person";
     public const string AgeEntityKey = "builtin.age";
     public const string GenderEntityKey = "Gender";
-    public const string InterestsEntityKey = "Interests";
+    public const string InterestEntityKey = "Interest";
 
     public const string GenderMale = "Male";
     public const string GenderFemale = "Female";
@@ -71,19 +71,6 @@ public class BasicLuisDialog : LuisDialog<object>
         //Check hvilke entiteter der er identificeret.
         FetchInspirationData(context, result);
         await ProceedInspirationConversation(context, result);
-
-
-        //var entities = result.Entities;
-        //var person = entities.FirstOrDefault(x => x.Type.Equals("Person"));
-        //if (person != null && person.Score > 0.60) {
-        //    context.UserData.SetValue("Person", person.Entity);
-        //    await context.PostAsync($"How old is {person.Entity} {JsonConvert.SerializeObject(result)}?"); //
-        //    context.Wait(MessageReceived);
-        //}
-        //else {
-        //    await context.PostAsync($"Who do you want to buy a gift for? {JsonConvert.SerializeObject(result)}"); //
-        //    context.Wait(MessageReceived);
-        //}
     }
 
     [LuisIntent("IdentifyPerson")]
@@ -100,7 +87,7 @@ public class BasicLuisDialog : LuisDialog<object>
             await context.PostAsync($"I am not clever enough to understand you?"); //
             context.Wait(MessageReceived);
         }
-        
+
     }
 
     [LuisIntent("IdentifyGender")]
@@ -131,23 +118,25 @@ public class BasicLuisDialog : LuisDialog<object>
         string person;
         if (!TryGetConversationData(context, PersonEntityKey, out person))
         {
-            await context.PostAsync($"Who do you want to buy a gift for? {JsonConvert.SerializeObject(context.ConversationData)}"); //
+            await context.PostAsync($"Who do you want to buy a gift for?"); //
         }
         else if (!HasConversationData(context, GenderEntityKey))
         {
-            await context.PostAsync($"Is {person} male or female? {JsonConvert.SerializeObject(result)}");
+            await context.PostAsync($"Is {person} male or female?");
         }
         else if (!HasConversationData(context, AgeEntityKey))
         {
-            await context.PostAsync($"How old is {person}? {JsonConvert.SerializeObject(result)}");
+            await context.PostAsync($"How old is {person}?");
         }
-        else if (!HasConversationData(context, InterestsEntityKey))
+        else if (!HasConversationData(context, InterestEntityKey))
         {
-            await context.PostAsync($"What are {person}s interests? {JsonConvert.SerializeObject(result)}");
+            await context.PostAsync($"What are {person}s interests?");
         }
         else
         {
-            await context.PostAsync($"Now I know everything");
+            string interests;
+            TryGetConversationData(context, InterestEntityKey, out interests);
+            await context.PostAsync($"Now I know everything {interests}");
             //Make recommendations
         }
         context.Wait(MessageReceived);
@@ -181,11 +170,17 @@ public class BasicLuisDialog : LuisDialog<object>
     private bool TryGetEntityData(LuisResult result, string key, out string value)
     {
         value = null;
-       
+
         var entity = result.Entities.FirstOrDefault(x => x.Type.Equals(key, StringComparison.InvariantCultureIgnoreCase) && x.Score > 0.4);
         if (entity == null) return false;
         value = entity.Entity;
         return true;
+    }
+
+    private IList<string> GetEntityDataList(LuisResult result, string key)
+    {
+        var entity = result.Entities.Where(x => x.Type.Equals(key, StringComparison.InvariantCultureIgnoreCase) && x.Score > 0.4).Select(x => x.Entity).ToList();
+        return entity;
     }
 
     private void FetchInspirationData(IDialogContext context, LuisResult result)
@@ -199,6 +194,9 @@ public class BasicLuisDialog : LuisDialog<object>
                 context.ConversationData.SetValue(entityKey, data);
             }
         }
+        var interests = GetEntityDataList(result, InterestEntityKey);
+        if (interests.Any())
+            context.ConversationData.SetValue(InterestEntityKey, string.Join(",", interests.ToArray()));
         string person = "";
         if (TryGetEntityData(result, PersonEntityKey, out person))
         {
