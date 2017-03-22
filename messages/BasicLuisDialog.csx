@@ -198,11 +198,11 @@ public class BasicLuisDialog : LuisDialog<object>
         if (TryGetEntityData(result, PersonEntityKey, out person))
         {
             person = person.ToLower();
-            if (FemaleIdentifiers.Contains(person))
+            if (FemaleIdentifiers.Any(x => x.person.Equals(person, StringComparison.InvariantCultureIgnoreCase)))
             {
                 context.ConversationData.SetValue(GenderEntityKey, GenderFemale);
             }
-            else if (MaleIdentifiers.Contains(person))
+            else if (MaleIdentifiers.Any(x => x.person.Equals(person, StringComparison.InvariantCultureIgnoreCase)))
             {
                 context.ConversationData.SetValue(GenderEntityKey, GenderMale);
             }
