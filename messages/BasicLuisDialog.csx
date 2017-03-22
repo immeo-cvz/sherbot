@@ -181,6 +181,7 @@ public class BasicLuisDialog : LuisDialog<object>
 
     private void FetchInspirationData(IDialogContext context, LuisResult result)
     {
+        context.PostAsync($"looking for {JsonConvert.SerializeObject(result)}");
         var entities = new string[] { PersonEntityKey, AgeEntityKey, GenderEntityKey };
         foreach (var entityKey in entities)
         {
