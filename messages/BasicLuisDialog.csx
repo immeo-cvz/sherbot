@@ -67,7 +67,7 @@ public class BasicLuisDialog : LuisDialog<object>
     [LuisIntent("GetInspiration")]
     public async Task GetInspiration(IDialogContext context, LuisResult result)
     {
-
+        context.ConversationData.Clear();
         //Check hvilke entiteter der er identificeret.
         FetchInspirationData(context, result);
         await ProceedInspirationConversation(context, result);
@@ -189,15 +189,12 @@ public class BasicLuisDialog : LuisDialog<object>
 
     private void FetchInspirationData(IDialogContext context, LuisResult result)
     {
-        context.PostAsync($"looking for {JsonConvert.SerializeObject(result)}");
         var entities = new string[] { PersonEntityKey, AgeEntityKey, GenderEntityKey };
         foreach (var entityKey in entities)
         {
-            context.PostAsync($"looking for {entityKey}");
             string data = "";
             if (TryGetEntityData(result, entityKey, out data))
             {
-                context.PostAsync($"saving {data}");
                 context.ConversationData.SetValue(entityKey, data);
             }
         }
@@ -205,7 +202,6 @@ public class BasicLuisDialog : LuisDialog<object>
         if (TryGetEntityData(result, PersonEntityKey, out person))
         {
             person = person.ToLower();
-            context.PostAsync($"person is {person}");
             if (FemaleIdentifiers.Any(x => x.Equals(person, StringComparison.InvariantCultureIgnoreCase)))
             {
                 context.ConversationData.SetValue(GenderEntityKey, GenderFemale);
