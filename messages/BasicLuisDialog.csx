@@ -98,8 +98,9 @@ public class BasicLuisDialog : LuisDialog<object>
         else
         {
             await context.PostAsync($"I am not clever enough to understand you?"); //
+            context.Wait(MessageReceived);
         }
-        context.Wait(MessageReceived);
+        
     }
 
     [LuisIntent("IdentifyGender")]
