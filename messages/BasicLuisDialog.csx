@@ -58,6 +58,7 @@ public class BasicLuisDialog : LuisDialog<object>
     public List<string> MaleIdentifiers;
     public List<Product> Products;
 
+    [Serializable]
     public class Product
     {
         public string Name { get; set; }
