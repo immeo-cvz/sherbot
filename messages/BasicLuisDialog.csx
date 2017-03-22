@@ -35,9 +35,18 @@ public class BasicLuisDialog : LuisDialog<object>
             "boy",
             "boyfriend"
         };
+
+        Products = new List<Product>()
+        {
+            new Product() {Name = "Havehandsker", Gender = GenderFemale, Id = "HAVE1", Interest = "gardening"},
+            new Product() {Name = "Skovl", Gender = GenderFemale, Id = "SKOV5", Interest = "gardening"},
+            new Product() {Name = "Yogamat", Gender = GenderFemale, Id = "YOGA1", Interest = "fitness"},
+            new Product() {Name = "Garmin watch", Gender = GenderFemale, Id = "GARM9", Interest = "fitness"}
+        };
     }
 
     public const string PersonEntityKey = "Person";
+    public const string ProductEntityKey = "Product";
     public const string AgeEntityKey = "builtin.age";
     public const string GenderEntityKey = "Gender";
     public const string InterestEntityKey = "Interest";
@@ -47,6 +56,15 @@ public class BasicLuisDialog : LuisDialog<object>
 
     public List<string> FemaleIdentifiers;
     public List<string> MaleIdentifiers;
+    public List<Product> Products;
+
+    public class Product
+    {
+        public string Name { get; set; }
+        public string Id { get; set; }
+        public string Interest { get; set; }
+        public string Gender { get; set; }
+    }
 
     [LuisIntent("None")]
     public async Task NoneIntent(IDialogContext context, LuisResult result)
@@ -116,11 +134,12 @@ public class BasicLuisDialog : LuisDialog<object>
     private async Task ProceedInspirationConversation(IDialogContext context, LuisResult result)
     {
         string person;
+        string gender;
         if (!TryGetConversationData(context, PersonEntityKey, out person))
         {
             await context.PostAsync($"Who do you want to buy a gift for?"); //
         }
-        else if (!HasConversationData(context, GenderEntityKey))
+        else if (!TryGetConversationData(context, GenderEntityKey, out gender))
         {
             await context.PostAsync($"Is {person} male or female?");
         }
@@ -136,8 +155,14 @@ public class BasicLuisDialog : LuisDialog<object>
         {
             string interests;
             TryGetConversationData(context, InterestEntityKey, out interests);
-            await context.PostAsync($"Now I know everything {interests}");
-            //Make recommendations
+            var interestsList = interests.Split(',').Select(x => x.ToLowerInvariant()).ToList();
+            var product =
+                Products.Where(
+                    x =>
+                        x.Gender.Equals(gender, StringComparison.InvariantCultureIgnoreCase) &&
+                        interestsList.Contains(x.Interest.ToLowerInvariant()));
+            var products = string.Join(", ", product.Select(x => x.Id));
+            await context.PostAsync($"Now I know everything {interests} , do you think {person} would like {products}");
         }
         context.Wait(MessageReceived);
     }
@@ -230,6 +255,28 @@ public class BasicLuisDialog : LuisDialog<object>
     {
         await context.PostAsync($"You have reached the Clear intent"); //
         context.ConversationData.Clear();
+        context.Wait(MessageReceived);
+    }
+
+    [LuisIntent("ShowProduct")]
+    public async Task ShowProduct(IDialogContext context, LuisResult result)
+    {
+        string productId;
+        if (TryGetEntityData(result, ProductEntityKey, out productId))
+        {
+            var product = Products.FirstOrDefault(x => x.Id.Equals(productId, StringComparison.InvariantCultureIgnoreCase));
+            if (product != null)
+            {
+                await context.PostAsync($"What a fine product Code {product.Id}, Name {product.Name}"); //
+
+            }
+            else
+            {
+                await context.PostAsync($"Unknown product"); //
+            }
+        }
+
+
         context.Wait(MessageReceived);
     }
 
