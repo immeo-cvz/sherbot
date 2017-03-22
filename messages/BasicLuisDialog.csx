@@ -222,7 +222,7 @@ public class BasicLuisDialog : LuisDialog<object>
     }
 
     [LuisIntent("Clear")]
-    public async Task Return(IDialogContext context, LuisResult result)
+    public async Task Clear(IDialogContext context, LuisResult result)
     {
         await context.PostAsync($"You have reached the Clear intent"); //
         context.ConversationData.Clear();
