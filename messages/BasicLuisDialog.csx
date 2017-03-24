@@ -163,7 +163,22 @@ public class BasicLuisDialog : LuisDialog<object>
                         x.Gender.Equals(gender, StringComparison.InvariantCultureIgnoreCase) &&
                         interestsList.Any(y => y.Equals(x.Interest, StringComparison.InvariantCultureIgnoreCase)));
             var products = string.Join(", ", product.Select(x => x.Id));
-            await context.PostAsync($"Now I know everything {interests} , do you think {person} would like {products} based on gender {gender} and interests {interests}");
+
+            var httpClient = new HttpClient();
+            var translatedJson =
+                await httpClient.GetStringAsync($"http://www.transltr.org/api/translate?text={gender}%20{interests}%20{person}&to=da&from=en");
+            dynamic translation = JsonConvert.DeserializeObject(translatedJson);
+            var searchText = translation.translationText?.Value;
+            
+            var resultJson = await httpClient.GetStringAsync($"http://politiken.dk/plus/side/soeg/MoreResults/?searchText={searchText}&skip=0&sorting=0&take=3");
+            dynamic jsonResponse = JsonConvert.DeserializeObject(resultJson);
+
+            if (jsonResponse.SearchResults.Length > 0)
+            {
+                await context.PostAsync($"What about a {jsonResponse.SearchResults[0].Headline}?");
+            }
+
+            //await context.PostAsync($"Now I know everything {interests} , do you think {person} would like {products} based on gender {gender} and interests {interests}");
         }
         context.Wait(MessageReceived);
     }

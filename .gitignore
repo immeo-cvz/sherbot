@@ -1,1 +1,3 @@
 project.lock.json
+/messages/obj
+/messages/messages.csproj
