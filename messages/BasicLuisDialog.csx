@@ -173,9 +173,10 @@ public class BasicLuisDialog : LuisDialog<object>
             var resultJson = await httpClient.GetStringAsync($"http://politiken.dk/plus/side/soeg/MoreResults/?searchText={searchText}&skip=0&sorting=0&take=3");
             dynamic jsonResponse = JsonConvert.DeserializeObject(resultJson);
 
-            if (jsonResponse.SearchResults.Length > 0)
+            if (jsonResponse.SearchResults.Count > 0)
             {
-                await context.PostAsync($"What about a {jsonResponse.SearchResults[0].Headline}?");
+                var suggestionUrl = $"http://politiken.dk/plus/side/soeg/#?searchText={searchText}";
+                await context.PostAsync($"What about a {jsonResponse.SearchResults[0].Headline}? You can see more suggestions here: {suggestionUrl}");
             }
 
             //await context.PostAsync($"Now I know everything {interests} , do you think {person} would like {products} based on gender {gender} and interests {interests}");
