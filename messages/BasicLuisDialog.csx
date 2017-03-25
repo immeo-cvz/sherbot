@@ -184,6 +184,18 @@ public class BasicLuisDialog : LuisDialog<object> {
         context.Wait(MessageReceived);
     }
 
+    private async Task PromptDialogResultAsync(IDialogContext context, IAwaitable<bool> result) {
+        if (await result == true)
+        {
+            context.Done<object>(null);
+        }
+        else {
+            await context.PostAsync("I apologize. Please mention some other interests.");
+            context.ConversationData.SetValue<string>(InterestEntityKey, null);
+            context.Wait(MessageReceived);
+        }
+    }
+
     private bool HasConversationData(IDialogContext context, string key) {
         string value;
         if (context.ConversationData.TryGetValue(key, out value)) {
@@ -306,19 +318,6 @@ public class BasicLuisDialog : LuisDialog<object> {
         protected override async Task DefaultWaitNextMessageAsync(IDialogContext context, IMessageActivity message, QnAMakerResult result) {
             context.Done<object>(null);
             await Task.FromResult(0);
-        }
-
-        private async Task PromptDialogResultAsync(IDialogContext context, IAwaitable<bool> result) {
-            if (await result == true)
-            {
-                context.Done<object>(null)
-            }
-            else
-            {
-                await context.PostAsync("I apologize. Please mention som other interests.");
-                context.ConversationData.SetValue<string>(InterestEntityKey, null);
-                context.Wait(MessageReceived);
-            }
         }
     }
 }
