@@ -188,7 +188,8 @@ public class BasicLuisDialog : LuisDialog<object>
                     ContentUrl = $"http://politiken.dk/plus{firstResult.MediaUrl}"
                 }};
 
-                replyMessage.Text = $"What about a {firstResult.Headline} ({firstResult.ContentUrl})? You can see more suggestions here: {suggestionUrl}"
+                replyMessage.Text =
+                    $"What about a {firstResult.Headline} ({firstResult.ContentUrl})? You can see more suggestions here: {suggestionUrl}";
 
                 await context.PostAsync(replyMessage);
             }
