@@ -178,10 +178,10 @@ public class BasicLuisDialog : LuisDialog<object> {
             }
             else {
                 await context.PostAsync($"Does {person} have any other interests than {interests}?");
+                context.Wait(MessageReceived);
             }
             //await context.PostAsync($"Now I know everything {interests} , do you think {person} would like {products} based on gender {gender} and interests {interests}");
         }
-        context.Wait(MessageReceived);
     }
 
     private async Task PromptDialogResultAsync(IDialogContext context, IAwaitable<bool> result) {
