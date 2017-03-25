@@ -6,6 +6,7 @@ using Microsoft.Bot.Builder.Azure;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Builder.Luis.Models;
+using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
 
 // For more information about this template visit http://aka.ms/azurebots-csharp-luis
@@ -179,9 +180,17 @@ public class BasicLuisDialog : LuisDialog<object>
 
                 //firstResult.PriceStructure.PlusPriceText
                 var suggestionUrl = $"http://politiken.dk/plus/side/soeg/#?searchText={searchText}";
-                await
-                    context.PostAsync(
-                        $"What about a {firstResult.Headline} ({firstResult.ContentUrl})? You can see more suggestions here: {suggestionUrl}");
+
+                var replyMessage = context.MakeMessage();
+                replyMessage.Attachments = new List<Attachment> { new Attachment {
+                    Name = "Product.jpg",
+                    ContentType = "image/jpg",
+                    ContentUrl = $"http://politiken.dk/plus{firstResult.MediaUrl}"
+                }};
+
+                replyMessage.Text = $"What about a {firstResult.Headline} ({firstResult.ContentUrl})? You can see more suggestions here: {suggestionUrl}"
+
+                await context.PostAsync(replyMessage);
             }
             else
             {
