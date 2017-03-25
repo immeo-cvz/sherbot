@@ -147,33 +147,7 @@ public class BasicLuisDialog : LuisDialog<object> {
             //            interestsList.Any(y => y.Equals(x.Interest, StringComparison.InvariantCultureIgnoreCase)));
             //var products = string.Join(", ", product.Select(x => x.Id));
 
-            var httpClient = new HttpClient();
-            var translatedJson =
-                await httpClient.GetStringAsync($"http://www.transltr.org/api/translate?text={gender}%20{interests}%20{person}&to=da&from=en");
-            dynamic translation = JsonConvert.DeserializeObject(translatedJson);
-            var searchText = translation.translationText.Value.Replace(" ", "%20");
-
-            var resultJson = await httpClient.GetStringAsync($"http://politiken.dk/plus/side/soeg/MoreResults/?searchText={searchText}&skip=0&sorting=0&take=3");
-            dynamic jsonResponse = JsonConvert.DeserializeObject(resultJson);
-
-            if (jsonResponse.SearchResults.Count > 0) {
-                var firstResult = jsonResponse.SearchResults[0];
-
-                //firstResult.PriceStructure.PlusPriceText
-                var suggestionUrl = $"http://politiken.dk/plus/side/soeg/#?searchText={searchText}";
-
-                var replyMessage = context.MakeMessage();
-                replyMessage.Attachments = new List<Attachment> { new Attachment {
-                    Name = "Product.jpg",
-                    ContentType = "image/jpg",
-                    ContentUrl = $"http://politiken.dk/plus{firstResult.MediaUrl}"
-                }};
-
-                replyMessage.Text =
-                    $"What about a {firstResult.Headline} ({firstResult.ContentUrl})? You can see more suggestions here: {suggestionUrl}";
-
-                await context.PostAsync(replyMessage);
-
+            if (await ShowSuggestions(context, $"{gender}%20{interests}%20{person}")) {
                 PromptDialog.Confirm(context, PromptDialogResultAsync, "Are my suggestions useful?");
             }
             else {
@@ -182,6 +156,44 @@ public class BasicLuisDialog : LuisDialog<object> {
             }
             //await context.PostAsync($"Now I know everything {interests} , do you think {person} would like {products} based on gender {gender} and interests {interests}");
         }
+    }
+
+    private async Task<bool> ShowSuggestions(IDialogContext context, string searchTextEnglish)
+    {
+        var httpClient = new HttpClient();
+        var translatedJson =
+            await httpClient.GetStringAsync($"http://www.transltr.org/api/translate?text={searchTextEnglish}&to=da&from=en");
+        dynamic translation = JsonConvert.DeserializeObject(translatedJson);
+        var searchText = translation.translationText.Value.Replace(" ", "%20");
+
+        var resultJson = await httpClient.GetStringAsync($"http://politiken.dk/plus/side/soeg/MoreResults/?searchText={searchText}&skip=0&sorting=0&take=3");
+        dynamic jsonResponse = JsonConvert.DeserializeObject(resultJson);
+
+        if (jsonResponse.SearchResults.Count > 0)
+        {
+            var firstResult = jsonResponse.SearchResults[0];
+
+            //firstResult.PriceStructure.PlusPriceText
+            var suggestionUrl = $"http://politiken.dk/plus/side/soeg/#?searchText={searchText}";
+
+            var replyMessage = context.MakeMessage();
+            replyMessage.Attachments = new List<Attachment>
+            {
+                new Attachment
+                {
+                    Name = "Product.jpg",
+                    ContentType = "image/jpg",
+                    ContentUrl = $"http://politiken.dk/plus{firstResult.MediaUrl}"
+                }
+            };
+
+            replyMessage.Text =
+                $"What about a {firstResult.Headline} ({firstResult.ContentUrl})? You can see more suggestions here: {suggestionUrl}";
+
+            await context.PostAsync(replyMessage);
+            return true;
+        }
+        return false;
     }
 
     private async Task PromptDialogResultAsync(IDialogContext context, IAwaitable<bool> result) {
@@ -278,20 +290,16 @@ public class BasicLuisDialog : LuisDialog<object> {
 
     [LuisIntent("ShowProduct")]
     public async Task ShowProduct(IDialogContext context, LuisResult result) {
-        string productId;
-        if (TryGetEntityData(result, ProductEntityKey, out productId)) {
-            var product = Products.FirstOrDefault(x => x.Id.Equals(productId, StringComparison.InvariantCultureIgnoreCase));
-            if (product != null) {
-                await context.PostAsync($"What a fine product Code {product.Id}, Name {product.Name}"); //
-
-            }
-            else {
-                await context.PostAsync($"Unknown product"); //
-            }
+        string product;
+        if (TryGetEntityData(result, ProductEntityKey, out product) && await ShowSuggestions(context, product)) {
+            PromptDialog.Confirm(context, PromptDialogResultAsync, "Are my suggestions useful?");
+        }
+        else {
+            await context.PostAsync($"Sorry we do not have the requested product.");
+            context.Wait(MessageReceived);
         }
 
-
-        context.Wait(MessageReceived);
+        //context.Wait(MessageReceived);
     }
 
     [LuisIntent("FAQ")]
