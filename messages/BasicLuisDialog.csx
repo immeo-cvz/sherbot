@@ -331,14 +331,14 @@ public class BasicLuisDialog : LuisDialog<object>
 
     private async Task AfterQnADialog(IDialogContext context, IAwaitable<object> result)
     {
-        await context.PostAsync("After qna");
-        var answerFound = (bool)await result;
+        await context.PostAsync("After qna "+JsonConvert.SerializeObject(result));
+        //var answerFound = (bool)await result;
 
-        // we might want to send a message or take some action if no answer was found (false returned)
-        if (!answerFound) {
-            await context.PostAsync("I’m not sure what you want.");
-        }
-        context.Done<object>(null);
+        //// we might want to send a message or take some action if no answer was found (false returned)
+        //if (!answerFound) {
+        //    await context.PostAsync("I’m not sure what you want.");
+        //}
+        //context.Done<object>(null);
         //context.Wait(MessageReceived);
     }
 
@@ -354,13 +354,13 @@ public class BasicLuisDialog : LuisDialog<object>
         }
 
         protected override async Task DefaultWaitNextMessageAsync(IDialogContext context, IMessageActivity message, QnAMakerResult result) {
-            if (result != null && result.Score < 0.1) {
+            //if (result != null && result.Score < 0.1) {
                 //PromptDialog.Confirm(context, PromptDialogResultAsync, "Do you want to see the services menu?");
                 context.Done<object>(null);
-            }
-            else {
-                await base.DefaultWaitNextMessageAsync(context, message, result);
-            }
+            //}
+            //else {
+            //    await base.DefaultWaitNextMessageAsync(context, message, result);
+            //}
         }
 
         private async Task PromptDialogResultAsync(IDialogContext context, IAwaitable<bool> result) {
