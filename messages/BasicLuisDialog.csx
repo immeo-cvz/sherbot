@@ -191,14 +191,14 @@ public class BasicLuisDialog : LuisDialog<object> {
         }
         else {
             await context.PostAsync("I apologize. Please mention some other interests.");
-            context.ConversationData.SetValue<string>(InterestEntityKey, null);
+            context.ConversationData.SetValue<string>(InterestEntityKey, string.Empty);
             context.Wait(MessageReceived);
         }
     }
 
     private bool HasConversationData(IDialogContext context, string key) {
         string value;
-        if (context.ConversationData.TryGetValue(key, out value)) {
+        if (context.ConversationData.TryGetValue(key, out value) && !string.IsNullOrEmpty(value)) {
             return true;
         }
         else {
