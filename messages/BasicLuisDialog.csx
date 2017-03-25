@@ -331,15 +331,7 @@ public class BasicLuisDialog : LuisDialog<object>
 
     private async Task AfterQnADialog(IDialogContext context, IAwaitable<object> result)
     {
-        //await context.PostAsync("After qna "+JsonConvert.SerializeObject(result));
-        //var answerFound = (bool)await result;
-
-        //// we might want to send a message or take some action if no answer was found (false returned)
-        //if (!answerFound) {
-        //    await context.PostAsync("I’m not sure what you want.");
-        //}
-        //context.Done<object>(null);
-        //context.Wait(MessageReceived);
+        await Task.FromResult(0);
     }
 
     [Serializable]
