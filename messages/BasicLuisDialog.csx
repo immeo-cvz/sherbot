@@ -280,8 +280,12 @@ public class BasicLuisDialog : LuisDialog<object>
     [LuisIntent("Return")]
     public async Task Return(IDialogContext context, LuisResult result)
     {
-        await context.PostAsync($"You have reached the Return intent. You said: {result.Query}"); //
-        context.Wait(MessageReceived);
+        //await context.PostAsync($"You have reached the Return intent. You said: {result.Query}"); //
+        //context.Wait(MessageReceived);
+        var faqDialog = new FaqDialog();
+
+        var messageToForward = await message;
+        await context.Forward(qnadialog, AfterQnADialog, messageToForward, CancellationToken.None);
     }
 
     [LuisIntent("Clear")]
@@ -314,8 +318,23 @@ public class BasicLuisDialog : LuisDialog<object>
         context.Wait(MessageReceived);
     }
 
+    [LuisIntent("FAQ")]
+    public async Task Faq(IDialogContext context, LuisResult result)
+    {
+        var faqDialog = new FaqDialog();
 
+        var messageToForward = await message;
+        await context.Forward(qnadialog, AfterQnADialog, messageToForward, CancellationToken.None);
+    }
 
+    private async Task AfterQnADialog(IDialogContext context, IAwaitable<bool> result) {
+        var answerFound = await result;
 
+        // we might want to send a message or take some action if no answer was found (false returned)
+        if (!answerFound) {
+            await context.PostAsync("I’m not sure what you want.");
+        }
 
+        context.Wait(MessageReceived);
+    }
 }
