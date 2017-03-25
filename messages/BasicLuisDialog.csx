@@ -343,36 +343,20 @@ public class BasicLuisDialog : LuisDialog<object>
     }
 
     [Serializable]
-    //[QnAMakerService("41841226e856477dbb51a4e5f2d0b8e0", "2fbea3cc-2c2c-47cc-a53e-87f5eb7ed5e1")]
     public class FaqDialog : QnAMakerDialog {
         //Parameters to QnAMakerService are:
         //Compulsory: subscriptionKey, knowledgebaseId, 
         //Optional: defaultMessage, scoreThreshold[Range 0.0 – 1.0]
         public FaqDialog() : base(new QnAMakerService(new QnAMakerAttribute(Utils.GetAppSetting("QnASubscriptionKey"), Utils.GetAppSetting("QnAKnowledgebaseId")))) { }
-
-        // Uncomment the code below if you wanna see an example on how to
-        // break the QnA loop in order to have custom logic within your 
-        // inherited dialog that you could be using as Root
+        
         protected override async Task RespondFromQnAMakerResultAsync(IDialogContext context, IMessageActivity message, QnAMakerResult result) {
-            await context.PostAsync("Executing custom logic..");
-            if (message.Text == "end")
-            {
-                context.Done<object>(null);
-            }
-            else if (result.Score == 0) {
-                await context.PostAsync("Executing custom logic 2..");
-            }
-            else {
-                await base.RespondFromQnAMakerResultAsync(context, message, result);
-            }
+            await base.RespondFromQnAMakerResultAsync(context, message, result);
         }
 
         protected override async Task DefaultWaitNextMessageAsync(IDialogContext context, IMessageActivity message, QnAMakerResult result) {
-            if (message.Text == "end") {
+            if (result != null && result.Score == 0) {
+                //PromptDialog.Confirm(context, PromptDialogResultAsync, "Do you want to see the services menu?");
                 context.Done<object>(null);
-            }
-            else if (result != null && result.Score == 0) {
-                PromptDialog.Confirm(context, PromptDialogResultAsync, "Do you want to see the services menu?");
             }
             else {
                 await base.DefaultWaitNextMessageAsync(context, message, result);
@@ -391,36 +375,5 @@ public class BasicLuisDialog : LuisDialog<object>
                 await this.DefaultWaitNextMessageAsync(context, null, null);
             }
         }
-
-        //public override async Task NoMatchHandler(IDialogContext context, string originalQueryText) {
-        //    await context.PostAsync($"Sorry, I couldn't find an answer for '{originalQueryText}'.");
-        //    context.Wait(MessageReceived);
-        //}
-
-        //public override async Task DefaultMatchHandler(IDialogContext context, string originalQueryText, QnAMakerResult result) {
-        //    // ProcessResultAndCreateMessageActivity will remove any attachment markup from the results answer
-        //    // and add any attachments to a new message activity with the message activity text set by default
-        //    // to the answer property from the result
-        //    var messageActivity = ProcessResultAndCreateMessageActivity(context, ref result);
-        //    messageActivity.Text = $"I found an answer that might help...{result.Answer}.";
-
-        //    await context.PostAsync(messageActivity);
-
-        //    context.Wait(MessageReceived);
-        //}
-
-        //[QnAMakerResponseHandler(100)]
-        //public async Task HighScoreHandler(IDialogContext context, string originalQueryText, QnAMakerResult result) {
-        //    await context.PostAsync($"{result.Answer}.");
-        //    // attachment
-        //    // <attachment contentType="video/mp4" contentUrl="http://www.yourdomain.com/video.mp4" name="Your title" thumbnailUrl="http://www.yourdomain.com/thumbnail.png" />
-        //    context.Wait(MessageReceived);
-        //}
-
-        //[QnAMakerResponseHandler(50)]
-        //public async Task LowScoreHandler(IDialogContext context, string originalQueryText, QnAMakerResult result) {
-        //    await context.PostAsync($"I found an answer that might help...{result.Answer}.");
-        //    context.Wait(MessageReceived);
-        //}
     }
 }
