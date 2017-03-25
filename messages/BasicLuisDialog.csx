@@ -336,7 +336,7 @@ public class BasicLuisDialog : LuisDialog<object>
         if (!answerFound) {
             await context.PostAsync("I’m not sure what you want.");
         }
-
+        context.Done<object>(null);
         //context.Wait(MessageReceived);
     }
 
