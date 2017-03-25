@@ -368,7 +368,10 @@ public class BasicLuisDialog : LuisDialog<object>
         }
 
         protected override async Task DefaultWaitNextMessageAsync(IDialogContext context, IMessageActivity message, QnAMakerResult result) {
-            if (result != null && result.Score == 0) {
+            if (message.Text == "end") {
+                context.Done<object>(null);
+            }
+            else if (result != null && result.Score == 0) {
                 PromptDialog.Confirm(context, PromptDialogResultAsync, "Do you want to see the services menu?");
             }
             else {
