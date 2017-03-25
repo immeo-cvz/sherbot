@@ -329,7 +329,9 @@ public class BasicLuisDialog : LuisDialog<object>
         await context.Forward(faqDialog, AfterQnADialog, messageToForward, CancellationToken.None);
     }
 
-    private async Task AfterQnADialog(IDialogContext context, IAwaitable<object> result) {
+    private async Task AfterQnADialog(IDialogContext context, IAwaitable<object> result)
+    {
+        await context.PostAsync("After qna");
         var answerFound = (bool)await result;
 
         // we might want to send a message or take some action if no answer was found (false returned)
@@ -353,6 +355,7 @@ public class BasicLuisDialog : LuisDialog<object>
         // inherited dialog that you could be using as Root
         protected override async Task RespondFromQnAMakerResultAsync(IDialogContext context, IMessageActivity message, QnAMakerResult result) {
             await context.PostAsync("Executing custom logic..");
+            if(message.Text == "end") context.Done<object>(null);
             if (result.Score == 0) {
                 await context.PostAsync("Executing custom logic 2..");
             }
