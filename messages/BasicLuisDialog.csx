@@ -156,29 +156,37 @@ public class BasicLuisDialog : LuisDialog<object>
         {
             string interests;
             TryGetConversationData(context, InterestEntityKey, out interests);
-            var interestsList = interests.Split(',').Select(x => x.ToLowerInvariant()).ToList();
-            var product =
-                Products.Where(
-                    x =>
-                        x.Gender.Equals(gender, StringComparison.InvariantCultureIgnoreCase) &&
-                        interestsList.Any(y => y.Equals(x.Interest, StringComparison.InvariantCultureIgnoreCase)));
-            var products = string.Join(", ", product.Select(x => x.Id));
+            //var interestsList = interests.Split(',').Select(x => x.ToLowerInvariant()).ToList();
+            //var product =
+            //    Products.Where(
+            //        x =>
+            //            x.Gender.Equals(gender, StringComparison.InvariantCultureIgnoreCase) &&
+            //            interestsList.Any(y => y.Equals(x.Interest, StringComparison.InvariantCultureIgnoreCase)));
+            //var products = string.Join(", ", product.Select(x => x.Id));
 
             var httpClient = new HttpClient();
             var translatedJson =
                 await httpClient.GetStringAsync($"http://www.transltr.org/api/translate?text={gender}%20{interests}%20{person}&to=da&from=en");
             dynamic translation = JsonConvert.DeserializeObject(translatedJson);
-            var searchText = translation.translationText?.Value;
-            
+            var searchText = translation.translationText.Value.Replace(" ", "%20");
+
             var resultJson = await httpClient.GetStringAsync($"http://politiken.dk/plus/side/soeg/MoreResults/?searchText={searchText}&skip=0&sorting=0&take=3");
             dynamic jsonResponse = JsonConvert.DeserializeObject(resultJson);
 
             if (jsonResponse.SearchResults.Count > 0)
             {
-                var suggestionUrl = $"http://politiken.dk/plus/side/soeg/#?searchText={searchText}";
-                await context.PostAsync($"What about a {jsonResponse.SearchResults[0].Headline}? You can see more suggestions here: {suggestionUrl}");
-            }
+                var firstResult = jsonResponse.SearchResults[0];
 
+                //firstResult.PriceStructure.PlusPriceText
+                var suggestionUrl = $"http://politiken.dk/plus/side/soeg/#?searchText={searchText}";
+                await
+                    context.PostAsync(
+                        $"What about a {firstResult.Headline} ({firstResult.ContentUrl})? You can see more suggestions here: {suggestionUrl}");
+            }
+            else
+            {
+                context.PostAsync($"Does {person} have any other interests than {interests}?");
+            }
             //await context.PostAsync($"Now I know everything {interests} , do you think {person} would like {products} based on gender {gender} and interests {interests}");
         }
         context.Wait(MessageReceived);
