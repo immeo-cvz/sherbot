@@ -13,12 +13,8 @@ using System.Threading;
 
 // For more information about this template visit http://aka.ms/azurebots-csharp-luis
 [Serializable]
-public class BasicLuisDialog : LuisDialog<object>
-
-
-{
-    public BasicLuisDialog() : base(new LuisService(new LuisModelAttribute(Utils.GetAppSetting("LuisAppId"), Utils.GetAppSetting("LuisAPIKey"))))
-    {
+public class BasicLuisDialog : LuisDialog<object> {
+    public BasicLuisDialog() : base(new LuisService(new LuisModelAttribute(Utils.GetAppSetting("LuisAppId"), Utils.GetAppSetting("LuisAPIKey")))) {
         FemaleIdentifiers = new List<string>
         {
             "mother",
@@ -62,8 +58,7 @@ public class BasicLuisDialog : LuisDialog<object>
     public List<Product> Products;
 
     [Serializable]
-    public class Product
-    {
+    public class Product {
         public string Name { get; set; }
         public string Id { get; set; }
         public string Interest { get; set; }
@@ -71,15 +66,13 @@ public class BasicLuisDialog : LuisDialog<object>
     }
 
     [LuisIntent("None")]
-    public async Task NoneIntent(IDialogContext context, LuisResult result)
-    {
+    public async Task NoneIntent(IDialogContext context, LuisResult result) {
         await context.PostAsync($"You have reached the none intent. You said: {result.Query}"); //
         context.Wait(MessageReceived);
     }
 
     [LuisIntent("Greeting")]
-    public async Task Greeting(IDialogContext context, LuisResult result)
-    {
+    public async Task Greeting(IDialogContext context, LuisResult result) {
         await context.PostAsync($"Hello. How can I be of service."); //
         context.Wait(MessageReceived);
     }
@@ -87,8 +80,7 @@ public class BasicLuisDialog : LuisDialog<object>
     // Go to https://luis.ai and create a new intent, then train/publish your luis app.
     // Finally replace "MyIntent" with the name of your newly created intent in the following handler
     [LuisIntent("GetInspiration")]
-    public async Task GetInspiration(IDialogContext context, LuisResult result)
-    {
+    public async Task GetInspiration(IDialogContext context, LuisResult result) {
         context.ConversationData.Clear();
         //Check hvilke entiteter der er identificeret.
         FetchInspirationData(context, result);
@@ -96,16 +88,13 @@ public class BasicLuisDialog : LuisDialog<object>
     }
 
     [LuisIntent("IdentifyPerson")]
-    public async Task IdentifyPerson(IDialogContext context, LuisResult result)
-    {
+    public async Task IdentifyPerson(IDialogContext context, LuisResult result) {
         FetchInspirationData(context, result);
         string person;
-        if (TryGetConversationData(context, PersonEntityKey, out person))
-        {
+        if (TryGetConversationData(context, PersonEntityKey, out person)) {
             await ProceedInspirationConversation(context, result);
         }
-        else
-        {
+        else {
             await context.PostAsync($"I am not clever enough to understand you?"); //
             context.Wait(MessageReceived);
         }
@@ -113,50 +102,41 @@ public class BasicLuisDialog : LuisDialog<object>
     }
 
     [LuisIntent("IdentifyGender")]
-    public async Task IdentifySex(IDialogContext context, LuisResult result)
-    {
+    public async Task IdentifySex(IDialogContext context, LuisResult result) {
         FetchInspirationData(context, result);
         await ProceedInspirationConversation(context, result);
     }
 
     [LuisIntent("IdentifyAge")]
-    public async Task IdentifyAge(IDialogContext context, LuisResult result)
-    {
+    public async Task IdentifyAge(IDialogContext context, LuisResult result) {
         FetchInspirationData(context, result);
         await ProceedInspirationConversation(context, result);
     }
 
     [LuisIntent("IdentifyInterests")]
-    public async Task IdentifyInterests(IDialogContext context, LuisResult result)
-    {
+    public async Task IdentifyInterests(IDialogContext context, LuisResult result) {
         FetchInspirationData(context, result);
         await ProceedInspirationConversation(context, result);
     }
 
 
 
-    private async Task ProceedInspirationConversation(IDialogContext context, LuisResult result)
-    {
+    private async Task ProceedInspirationConversation(IDialogContext context, LuisResult result) {
         string person;
         string gender;
-        if (!TryGetConversationData(context, PersonEntityKey, out person))
-        {
+        if (!TryGetConversationData(context, PersonEntityKey, out person)) {
             await context.PostAsync($"Who do you want to buy a gift for?"); //
         }
-        else if (!TryGetConversationData(context, GenderEntityKey, out gender))
-        {
+        else if (!TryGetConversationData(context, GenderEntityKey, out gender)) {
             await context.PostAsync($"Is {person} male or female?");
         }
-        else if (!HasConversationData(context, AgeEntityKey))
-        {
+        else if (!HasConversationData(context, AgeEntityKey)) {
             await context.PostAsync($"How old is {person}?");
         }
-        else if (!HasConversationData(context, InterestEntityKey))
-        {
+        else if (!HasConversationData(context, InterestEntityKey)) {
             await context.PostAsync($"What are {person}s interests?");
         }
-        else
-        {
+        else {
             string interests;
             TryGetConversationData(context, InterestEntityKey, out interests);
             //var interestsList = interests.Split(',').Select(x => x.ToLowerInvariant()).ToList();
@@ -176,8 +156,7 @@ public class BasicLuisDialog : LuisDialog<object>
             var resultJson = await httpClient.GetStringAsync($"http://politiken.dk/plus/side/soeg/MoreResults/?searchText={searchText}&skip=0&sorting=0&take=3");
             dynamic jsonResponse = JsonConvert.DeserializeObject(resultJson);
 
-            if (jsonResponse.SearchResults.Count > 0)
-            {
+            if (jsonResponse.SearchResults.Count > 0) {
                 var firstResult = jsonResponse.SearchResults[0];
 
                 //firstResult.PriceStructure.PlusPriceText
@@ -194,9 +173,10 @@ public class BasicLuisDialog : LuisDialog<object>
                     $"What about a {firstResult.Headline} ({firstResult.ContentUrl})? You can see more suggestions here: {suggestionUrl}";
 
                 await context.PostAsync(replyMessage);
+
+                PromptDialog.Confirm(context, PromptDialogResultAsync, "Are my suggestions useful?");
             }
-            else
-            {
+            else {
                 await context.PostAsync($"Does {person} have any other interests than {interests}?");
             }
             //await context.PostAsync($"Now I know everything {interests} , do you think {person} would like {products} based on gender {gender} and interests {interests}");
@@ -204,33 +184,26 @@ public class BasicLuisDialog : LuisDialog<object>
         context.Wait(MessageReceived);
     }
 
-    private bool HasConversationData(IDialogContext context, string key)
-    {
+    private bool HasConversationData(IDialogContext context, string key) {
         string value;
-        if (context.ConversationData.TryGetValue(key, out value))
-        {
+        if (context.ConversationData.TryGetValue(key, out value)) {
             return true;
         }
-        else
-        {
+        else {
             return false;
         }
     }
 
-    private bool TryGetConversationData(IDialogContext context, string key, out string value)
-    {
+    private bool TryGetConversationData(IDialogContext context, string key, out string value) {
         value = null;
-        if (context.ConversationData.TryGetValue(key, out value))
-        {
+        if (context.ConversationData.TryGetValue(key, out value)) {
             return true;
         }
-        else
-        {
+        else {
             return false;
         }
     }
-    private bool TryGetEntityData(LuisResult result, string key, out string value)
-    {
+    private bool TryGetEntityData(LuisResult result, string key, out string value) {
         value = null;
 
         var entity = result.Entities.FirstOrDefault(x => x.Type.Equals(key, StringComparison.InvariantCultureIgnoreCase) && x.Score > 0.4);
@@ -239,20 +212,16 @@ public class BasicLuisDialog : LuisDialog<object>
         return true;
     }
 
-    private IList<string> GetEntityDataList(LuisResult result, string key)
-    {
+    private IList<string> GetEntityDataList(LuisResult result, string key) {
         var entity = result.Entities.Where(x => x.Type.Equals(key, StringComparison.InvariantCultureIgnoreCase) && x.Score > 0.4).Select(x => x.Entity).ToList();
         return entity;
     }
 
-    private void FetchInspirationData(IDialogContext context, LuisResult result)
-    {
+    private void FetchInspirationData(IDialogContext context, LuisResult result) {
         var entities = new string[] { PersonEntityKey, AgeEntityKey, GenderEntityKey };
-        foreach (var entityKey in entities)
-        {
+        foreach (var entityKey in entities) {
             string data = "";
-            if (TryGetEntityData(result, entityKey, out data))
-            {
+            if (TryGetEntityData(result, entityKey, out data)) {
                 context.ConversationData.SetValue(entityKey, data);
             }
         }
@@ -260,15 +229,12 @@ public class BasicLuisDialog : LuisDialog<object>
         if (interests.Any())
             context.ConversationData.SetValue(InterestEntityKey, string.Join(",", interests.ToArray()));
         string person = "";
-        if (TryGetEntityData(result, PersonEntityKey, out person))
-        {
+        if (TryGetEntityData(result, PersonEntityKey, out person)) {
             person = person.ToLower();
-            if (FemaleIdentifiers.Any(x => x.Equals(person, StringComparison.InvariantCultureIgnoreCase)))
-            {
+            if (FemaleIdentifiers.Any(x => x.Equals(person, StringComparison.InvariantCultureIgnoreCase))) {
                 context.ConversationData.SetValue(GenderEntityKey, GenderFemale);
             }
-            else if (MaleIdentifiers.Any(x => x.Equals(person, StringComparison.InvariantCultureIgnoreCase)))
-            {
+            else if (MaleIdentifiers.Any(x => x.Equals(person, StringComparison.InvariantCultureIgnoreCase))) {
                 context.ConversationData.SetValue(GenderEntityKey, GenderMale);
             }
         }
@@ -280,8 +246,7 @@ public class BasicLuisDialog : LuisDialog<object>
     // Go to https://luis.ai and create a new intent, then train/publish your luis app.
     // Finally replace "MyIntent" with the name of your newly created intent in the following handler
     [LuisIntent("Return")]
-    public async Task Return(IDialogContext context, IAwaitable<IMessageActivity> message, LuisResult result)
-    {
+    public async Task Return(IDialogContext context, IAwaitable<IMessageActivity> message, LuisResult result) {
         //await context.PostAsync($"You have reached the Return intent. You said: {result.Query}"); //
         //context.Wait(MessageReceived);
         var faqDialog = new FaqDialog();
@@ -291,27 +256,22 @@ public class BasicLuisDialog : LuisDialog<object>
     }
 
     [LuisIntent("Clear")]
-    public async Task Clear(IDialogContext context, LuisResult result)
-    {
+    public async Task Clear(IDialogContext context, LuisResult result) {
         await context.PostAsync($"You have reached the Clear intent"); //
         context.ConversationData.Clear();
         context.Wait(MessageReceived);
     }
 
     [LuisIntent("ShowProduct")]
-    public async Task ShowProduct(IDialogContext context, LuisResult result)
-    {
+    public async Task ShowProduct(IDialogContext context, LuisResult result) {
         string productId;
-        if (TryGetEntityData(result, ProductEntityKey, out productId))
-        {
+        if (TryGetEntityData(result, ProductEntityKey, out productId)) {
             var product = Products.FirstOrDefault(x => x.Id.Equals(productId, StringComparison.InvariantCultureIgnoreCase));
-            if (product != null)
-            {
+            if (product != null) {
                 await context.PostAsync($"What a fine product Code {product.Id}, Name {product.Name}"); //
 
             }
-            else
-            {
+            else {
                 await context.PostAsync($"Unknown product"); //
             }
         }
@@ -321,16 +281,14 @@ public class BasicLuisDialog : LuisDialog<object>
     }
 
     [LuisIntent("FAQ")]
-    public async Task Faq(IDialogContext context, IAwaitable<IMessageActivity> message, LuisResult result)
-    {
+    public async Task Faq(IDialogContext context, IAwaitable<IMessageActivity> message, LuisResult result) {
         var faqDialog = new FaqDialog();
 
         var messageToForward = await message;
         await context.Forward(faqDialog, AfterQnADialog, messageToForward, CancellationToken.None);
     }
 
-    private async Task AfterQnADialog(IDialogContext context, IAwaitable<object> result)
-    {
+    private async Task AfterQnADialog(IDialogContext context, IAwaitable<object> result) {
         await Task.FromResult(0);
     }
 
@@ -340,32 +298,26 @@ public class BasicLuisDialog : LuisDialog<object>
         //Compulsory: subscriptionKey, knowledgebaseId, 
         //Optional: defaultMessage, scoreThreshold[Range 0.0 – 1.0]
         public FaqDialog() : base(new QnAMakerService(new QnAMakerAttribute(Utils.GetAppSetting("QnASubscriptionKey"), Utils.GetAppSetting("QnAKnowledgebaseId"), "I'am not sure what you are asking for. Can you please rephrase.", 0.2))) { }
-        
+
         protected override async Task RespondFromQnAMakerResultAsync(IDialogContext context, IMessageActivity message, QnAMakerResult result) {
             await base.RespondFromQnAMakerResultAsync(context, message, result);
         }
 
         protected override async Task DefaultWaitNextMessageAsync(IDialogContext context, IMessageActivity message, QnAMakerResult result) {
-            //if (result != null && result.Score < 0.1) {
-                //PromptDialog.Confirm(context, PromptDialogResultAsync, "Do you want to see the services menu?");
-                context.Done<object>(null);
+            context.Done<object>(null);
             await Task.FromResult(0);
-            //}
-            //else {
-            //    await base.DefaultWaitNextMessageAsync(context, message, result);
-            //}
         }
 
         private async Task PromptDialogResultAsync(IDialogContext context, IAwaitable<bool> result) {
-            if (await result == true) {
-                await context.PostAsync("Showing the menu..");
-
-                // TODO: you can continue your custom logic here and finally go back to the QnA dialog loop using DefaultWaitNextMessageAsync()
-
-                await this.DefaultWaitNextMessageAsync(context, null, null);
+            if (await result == true)
+            {
+                context.Done<object>(null)
             }
-            else {
-                await this.DefaultWaitNextMessageAsync(context, null, null);
+            else
+            {
+                await context.PostAsync("I apologize. Please mention som other interests.");
+                context.ConversationData.SetValue(InterestEntityKey, null);
+                context.Wait(MessageReceived);
             }
         }
     }
