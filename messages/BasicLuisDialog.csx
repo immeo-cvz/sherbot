@@ -331,7 +331,7 @@ public class BasicLuisDialog : LuisDialog<object>
 
     private async Task AfterQnADialog(IDialogContext context, IAwaitable<object> result)
     {
-        await context.PostAsync("After qna "+JsonConvert.SerializeObject(result));
+        //await context.PostAsync("After qna "+JsonConvert.SerializeObject(result));
         //var answerFound = (bool)await result;
 
         //// we might want to send a message or take some action if no answer was found (false returned)
@@ -347,7 +347,7 @@ public class BasicLuisDialog : LuisDialog<object>
         //Parameters to QnAMakerService are:
         //Compulsory: subscriptionKey, knowledgebaseId, 
         //Optional: defaultMessage, scoreThreshold[Range 0.0 – 1.0]
-        public FaqDialog() : base(new QnAMakerService(new QnAMakerAttribute(Utils.GetAppSetting("QnASubscriptionKey"), Utils.GetAppSetting("QnAKnowledgebaseId")))) { }
+        public FaqDialog() : base(new QnAMakerService(new QnAMakerAttribute(Utils.GetAppSetting("QnASubscriptionKey"), Utils.GetAppSetting("QnAKnowledgebaseId"), "I'am not sure what you are asking for. Can you please rephrase.", 0.2))) { }
         
         protected override async Task RespondFromQnAMakerResultAsync(IDialogContext context, IMessageActivity message, QnAMakerResult result) {
             await base.RespondFromQnAMakerResultAsync(context, message, result);
