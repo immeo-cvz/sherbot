@@ -148,7 +148,7 @@ public class BasicLuisDialog : LuisDialog<object> {
             //var products = string.Join(", ", product.Select(x => x.Id));
 
             if (await ShowSuggestions(context, $"{gender}%20{interests}%20{person}")) {
-                PromptDialog.Confirm(context, PromptDialogResultAsync, "Are my suggestions useful?");
+                PromptDialog.Confirm(context, PromptOtherInterestsDialogResultAsync, "Are my suggestions useful?");
             }
             else {
                 await context.PostAsync($"Does {person} have any other interests than {interests}?");
@@ -158,8 +158,7 @@ public class BasicLuisDialog : LuisDialog<object> {
         }
     }
 
-    private async Task<bool> ShowSuggestions(IDialogContext context, string searchTextEnglish)
-    {
+    private async Task<bool> ShowSuggestions(IDialogContext context, string searchTextEnglish) {
         var httpClient = new HttpClient();
         var translatedJson =
             await httpClient.GetStringAsync($"http://www.transltr.org/api/translate?text={searchTextEnglish}&to=da&from=en");
@@ -169,8 +168,7 @@ public class BasicLuisDialog : LuisDialog<object> {
         var resultJson = await httpClient.GetStringAsync($"http://politiken.dk/plus/side/soeg/MoreResults/?searchText={searchText}&skip=0&sorting=0&take=3");
         dynamic jsonResponse = JsonConvert.DeserializeObject(resultJson);
 
-        if (jsonResponse.SearchResults.Count > 0)
-        {
+        if (jsonResponse.SearchResults.Count > 0) {
             var firstResult = jsonResponse.SearchResults[0];
 
             //firstResult.PriceStructure.PlusPriceText
@@ -196,9 +194,8 @@ public class BasicLuisDialog : LuisDialog<object> {
         return false;
     }
 
-    private async Task PromptDialogResultAsync(IDialogContext context, IAwaitable<bool> result) {
-        if (await result == true)
-        {
+    private async Task PromptOtherInterestsDialogResultAsync(IDialogContext context, IAwaitable<bool> result) {
+        if (await result == true) {
             await context.PostAsync("Excellent, I am glad I could be of service.");
             context.ConversationData.Clear();
         }
@@ -291,10 +288,7 @@ public class BasicLuisDialog : LuisDialog<object> {
     [LuisIntent("ShowProduct")]
     public async Task ShowProduct(IDialogContext context, LuisResult result) {
         string product;
-        if (TryGetEntityData(result, ProductEntityKey, out product) && await ShowSuggestions(context, product)) {
-            PromptDialog.Confirm(context, PromptDialogResultAsync, "Are my suggestions useful?");
-        }
-        else {
+        if (!TryGetEntityData(result, ProductEntityKey, out product) || !await ShowSuggestions(context, product)) {
             await context.PostAsync($"Sorry we do not have the requested product.");
             context.Wait(MessageReceived);
         }
