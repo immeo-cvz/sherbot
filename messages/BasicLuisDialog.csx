@@ -337,7 +337,7 @@ public class BasicLuisDialog : LuisDialog<object>
             await context.PostAsync("I’m not sure what you want.");
         }
 
-        context.Wait(MessageReceived);
+        //context.Wait(MessageReceived);
     }
 
     [Serializable]
@@ -346,7 +346,7 @@ public class BasicLuisDialog : LuisDialog<object>
         //Parameters to QnAMakerService are:
         //Compulsory: subscriptionKey, knowledgebaseId, 
         //Optional: defaultMessage, scoreThreshold[Range 0.0 – 1.0]
-        public FaqDialog() : base(new QnAMakerService(new QnAMakerAttribute(Utils.GetAppSetting("QnASubscriptionKey"), Utils.GetAppSetting("QnAKnowledgebaseId"), "No good match in Politiken PLus FAQ.", 0.1))) { }
+        public FaqDialog() : base(new QnAMakerService(new QnAMakerAttribute(Utils.GetAppSetting("QnASubscriptionKey"), Utils.GetAppSetting("QnAKnowledgebaseId"), "I'am not sure what you are asking. Please try to rephrase.", 0.1))) { }
 
         //public override async Task NoMatchHandler(IDialogContext context, string originalQueryText) {
         //    await context.PostAsync($"Sorry, I couldn't find an answer for '{originalQueryText}'.");
