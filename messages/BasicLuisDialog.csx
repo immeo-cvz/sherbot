@@ -316,7 +316,7 @@ public class BasicLuisDialog : LuisDialog<object> {
             else
             {
                 await context.PostAsync("I apologize. Please mention som other interests.");
-                context.ConversationData.SetValue(InterestEntityKey, null);
+                context.ConversationData.SetValue<string>(InterestEntityKey, null);
                 context.Wait(MessageReceived);
             }
         }
