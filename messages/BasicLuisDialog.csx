@@ -187,13 +187,15 @@ public class BasicLuisDialog : LuisDialog<object> {
     private async Task PromptDialogResultAsync(IDialogContext context, IAwaitable<bool> result) {
         if (await result == true)
         {
-            context.Done<object>(null);
+            await context.PostAsync("Excellent, I am glad I could be of service.");
+            context.ConversationData.Clear();
         }
         else {
             await context.PostAsync("I apologize. Please mention some other interests.");
             context.ConversationData.SetValue<string>(InterestEntityKey, string.Empty);
-            context.Wait(MessageReceived);
         }
+
+        context.Wait(MessageReceived);
     }
 
     private bool HasConversationData(IDialogContext context, string key) {
