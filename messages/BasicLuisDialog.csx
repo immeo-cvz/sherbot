@@ -346,7 +346,7 @@ public class BasicLuisDialog : LuisDialog<object>
         //Parameters to QnAMakerService are:
         //Compulsory: subscriptionKey, knowledgebaseId, 
         //Optional: defaultMessage, scoreThreshold[Range 0.0 – 1.0]
-        public FaqDialog() : base(new QnAMakerService(new QnAMakerAttribute(Utils.GetAppSetting("QnASubscriptionKey"), Utils.GetAppSetting("QnAKnowledgebaseId"), "No good match in FAQ.", 0.3))) { }
+        public FaqDialog() : base(new QnAMakerService(new QnAMakerAttribute(Utils.GetAppSetting("QnASubscriptionKey"), Utils.GetAppSetting("QnAKnowledgebaseId")))) { }
 
         //public override async Task NoMatchHandler(IDialogContext context, string originalQueryText) {
         //    await context.PostAsync($"Sorry, I couldn't find an answer for '{originalQueryText}'.");
