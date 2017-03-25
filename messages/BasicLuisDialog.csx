@@ -346,7 +346,41 @@ public class BasicLuisDialog : LuisDialog<object>
         //Parameters to QnAMakerService are:
         //Compulsory: subscriptionKey, knowledgebaseId, 
         //Optional: defaultMessage, scoreThreshold[Range 0.0 – 1.0]
-        public FaqDialog() : base(new QnAMakerService(new QnAMakerAttribute(Utils.GetAppSetting("QnASubscriptionKey"), Utils.GetAppSetting("QnAKnowledgebaseId"), "I'am not sure what you are asking. Please try to rephrase.", 0.1))) { }
+        public FaqDialog() : base(new QnAMakerService(new QnAMakerAttribute(Utils.GetAppSetting("QnASubscriptionKey"), Utils.GetAppSetting("QnAKnowledgebaseId")))) { }
+
+        // Uncomment the code below if you wanna see an example on how to
+        // break the QnA loop in order to have custom logic within your 
+        // inherited dialog that you could be using as Root
+        protected override async Task RespondFromQnAMakerResultAsync(IDialogContext context, IMessageActivity message, QnAMakerResult result) {
+            if (result.Score == 0) {
+                await context.PostAsync("Executing custom logic..");
+            }
+            else {
+                await base.RespondFromQnAMakerResultAsync(context, message, result);
+            }
+        }
+
+        protected override async Task DefaultWaitNextMessageAsync(IDialogContext context, IMessageActivity message, QnAMakerResult result) {
+            if (result != null && result.Score == 0) {
+                PromptDialog.Confirm(context, PromptDialogResultAsync, "Do you want to see the services menu?");
+            }
+            else {
+                await base.DefaultWaitNextMessageAsync(context, message, result);
+            }
+        }
+
+        private async Task PromptDialogResultAsync(IDialogContext context, IAwaitable<bool> result) {
+            if (await result == true) {
+                await context.PostAsync("Showing the menu..");
+
+                // TODO: you can continue your custom logic here and finally go back to the QnA dialog loop using DefaultWaitNextMessageAsync()
+
+                await this.DefaultWaitNextMessageAsync(context, null, null);
+            }
+            else {
+                await this.DefaultWaitNextMessageAsync(context, null, null);
+            }
+        }
 
         //public override async Task NoMatchHandler(IDialogContext context, string originalQueryText) {
         //    await context.PostAsync($"Sorry, I couldn't find an answer for '{originalQueryText}'.");
