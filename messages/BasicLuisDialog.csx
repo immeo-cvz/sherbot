@@ -352,8 +352,9 @@ public class BasicLuisDialog : LuisDialog<object>
         // break the QnA loop in order to have custom logic within your 
         // inherited dialog that you could be using as Root
         protected override async Task RespondFromQnAMakerResultAsync(IDialogContext context, IMessageActivity message, QnAMakerResult result) {
+            await context.PostAsync("Executing custom logic..");
             if (result.Score == 0) {
-                await context.PostAsync("Executing custom logic..");
+                await context.PostAsync("Executing custom logic 2..");
             }
             else {
                 await base.RespondFromQnAMakerResultAsync(context, message, result);
