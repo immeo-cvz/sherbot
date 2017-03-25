@@ -357,6 +357,7 @@ public class BasicLuisDialog : LuisDialog<object>
             //if (result != null && result.Score < 0.1) {
                 //PromptDialog.Confirm(context, PromptDialogResultAsync, "Do you want to see the services menu?");
                 context.Done<object>(null);
+            await Task.FromResult(0);
             //}
             //else {
             //    await base.DefaultWaitNextMessageAsync(context, message, result);
